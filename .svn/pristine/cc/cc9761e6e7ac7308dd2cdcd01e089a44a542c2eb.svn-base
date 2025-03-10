@@ -1,0 +1,72 @@
+﻿using CommonUtil;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Mokhyung_Management.Model.ViewModel.Box
+{
+    public class View_BoxList
+    {
+        public int RowNum { get; set; }
+        public long MI_Seq { get; set; }
+
+        public string MI_Type { get; set; }
+
+        public string MI_Name { get; set; }
+
+        public int MI_Number { get; set; }
+
+        public int MI_Jang { get; set; }
+
+        public int MI_Pok { get; set; }
+
+        public int MI_Go { get; set; }
+
+        public DateTime MI_RegDate { get; set; }
+
+        public DateTime MI_ModDate { get; set; }
+
+        public View_BoxDetail Detail { get; set; }
+    }
+
+    public class View_BoxDetail
+    {
+
+        public long MIB_Seq { get; set; }
+        public string MIB_Type { get; set; }
+
+        public string MIB_TypeText
+        {
+            get
+            {
+                string MT = string.Empty;
+                if (!string.IsNullOrWhiteSpace(this.MIB_Type))
+                {
+                    MT = ConvertUtil.Get_BoxType_Text(MIB_Type);
+
+                }
+                return MT;
+            }
+        }
+
+        public int MIB_Pyunglyang { get; set; }
+
+        public int MIB_PanNumber{ get; set; }
+
+        public string MIB_Bigo { get; set; }
+
+        public string MIB_FilePath { get; set; }
+
+        public string MIB_FileName { get; set; }
+
+        public DateTime MIB_RegDate { get; set; }
+
+        public DateTime MIB_ModDate { get; set; }
+
+
+
+
+    }
+}

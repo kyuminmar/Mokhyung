@@ -1,0 +1,89 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace CommonUtil
+{
+   public  class Comm_Enum
+    {
+
+        public static T ParseEnum<T>(string value)
+        {
+            return (T)Enum.Parse(typeof(T), value, true);
+        }
+       
+        /// <summary>
+        /// 목형타입
+        /// </summary>
+        public enum Mok_Type : int
+        {
+           
+            /// <summary>
+            /// 쇼핑백
+            /// </summary>
+            S,
+            /// <summary>
+            /// 박스
+            /// </summary>
+            B,
+            /// <summary>
+            /// 기타
+            /// </summary>
+            E
+        }
+
+        public enum KeyValue : int
+        {
+            /// <summary>
+            /// 인덱스
+            /// </summary>
+            K,
+            /// <summary>
+            /// 값
+            /// </summary>
+            V
+        }
+
+        public enum SP_Type : int
+        {
+
+            /// <summary>
+            /// 타공
+            /// </summary>
+            T,
+            /// <summary>
+            /// 매립
+            /// </summary>
+            M,
+            /// <summary>
+            /// 쪽
+            /// </summary>
+            J
+
+        }
+
+        public enum Y_N : int
+        {
+            Y,
+            N
+        }
+
+        public enum Search_Type : int
+        {
+            /// <summary>
+            /// 목형명
+            /// </summary>
+            N,
+            /// <summary>
+            /// 목형번호
+            /// </summary>
+            U,
+            /// <summary>
+            /// 타입
+            /// </summary>
+            T
+        }
+    }
+}

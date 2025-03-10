@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Mokhyung_Management.Model.Route_Model.Box
+{
+    public class Route_MokInfo_Box
+    {
+        public long MI_Seq { get; set; }
+        public string MIB_Type { get; set; }
+        public int MIB_Pyunglyang { get; set; }
+        public int MIB_Pansu { get; set; }
+        public string MIB_Bigo { get; set; }
+    }
+}

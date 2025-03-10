@@ -1,0 +1,186 @@
+﻿using CommonControl;
+using CommonUtil;
+using CommonUtil.Model;
+using EF_CodeFirst.DB_Model;
+using Mokhyung_Management.Model.AddMok;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Data.Entity;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace Mokhyung_Management.SP
+{
+    public partial class ModSP : BaseCommonController
+    {
+        public delegate void FormSendDataHandler(object obj);
+
+#pragma warning disable CS0067 // 'ModSP.FormSendEvent' 이벤트가 사용되지 않았습니다.
+        public event FormSendDataHandler FormSendEvent;
+#pragma warning restore CS0067 // 'ModSP.FormSendEvent' 이벤트가 사용되지 않았습니다.
+
+        public ModSP(int MI_Seq)
+        {
+            InitializeComponent();
+
+            //쇼핑백 타입 리스트만듦
+            List<Model_KeyValue> SPList = new List<Model_KeyValue>();
+            SPList.AddRange(ConvertUtil.Get_SPType_List());
+
+            //쇼핑백타입 리스트에 키 밸류 값 부여
+            Combo_SPTypeList.ValueMember = Comm_Param.KeyValueString.K.ToString();
+            Combo_SPTypeList.DisplayMember = Comm_Param.KeyValueString.V.ToString();
+
+
+            //목형 타입 리스트 넣어줌
+            foreach (var c in SPList)
+            {
+                Combo_SPTypeList.Items.Add(new { Key = c.Key, Value = c.Value });
+            }
+
+            var MokDetail = db.MK_Info.Where(x => x.MI_Seq == MI_Seq).FirstOrDefault();
+            var SPDetail = db.MK_Info_SP.Where(x => x.MI_Seq == MI_Seq).FirstOrDefault();
+
+            Text_MokName.Text = MokDetail.MI_Name;
+            Text_MokNumber.Text = MokDetail.MI_Number.ToString();
+            Text_MokJang.Text = MokDetail.MI_Jang.ToString();
+            Text_MokPok.Text = MokDetail.MI_Pok.ToString();
+            Text_MokGo.Text = MokDetail.MI_Go.ToString();
+            //쇼핑백 타입 콤보박스에서 불러온 텍스트로 값을 세팅함
+            Combo_SPTypeList.SelectedIndex = Combo_SPTypeList.FindString(ConvertUtil.Get_SPType_Text(SPDetail.MIS_Type));
+            Text_Sangjub.Text = SPDetail.MIS_Sangjub.ToString();
+            Text_Hajub.Text = SPDetail.MIS_Hajub.ToString();
+            Text_Pulbari.Text = SPDetail.MIS_Pulbari.ToString();
+            Chk_JjokYn.Checked = SPDetail.MIS_JJokYn;
+            Text_Bigo.Text = SPDetail.MIS_Bigo;
+            Hidden_MISeq.Text = MI_Seq.ToString();
+
+        }
+
+        /// <summary>
+        /// 수정버튼
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>        
+        private void Btn_Mod_MokInfo_Click(object sender, EventArgs e)
+        {
+            MainSP MSP = new MainSP();
+            try
+            {
+                long MISEQ = 0;
+                MISEQ = Convert.ToInt64(Hidden_MISeq.Text);
+
+                string SP_TypeString = string.Empty;
+                //오브젝트를 json타입으로 변경
+                SP_TypeString = JsonConvert.SerializeObject(Combo_SPTypeList.SelectedItem);
+                //json 타입으로 변경된걸 모델로변경
+
+                Route_MokInfo route = new Route_MokInfo();
+                Route_MokInfo_SP routeSP = new Route_MokInfo_SP();
+
+                MK_Info Upt_MI = db.MK_Info.Find(MISEQ);
+                MK_Info_SP Upt_MIS = db.MK_Info_SP.Where(x => x.MI_Seq == MISEQ).FirstOrDefault();
+
+                //목형 기본정보 인서트
+                route.MI_Jang = Convert.ToInt32(Text_MokJang.Text);
+                route.MI_Pok = Convert.ToInt32(Text_MokPok.Text);
+                route.MI_Go = Convert.ToInt32(Text_MokGo.Text);
+                routeSP.MIS_Type = JsonConvert.DeserializeObject<Model_KeyValue>(SP_TypeString).Key;
+                routeSP.MIS_Sangjub = Convert.ToInt32(Text_Sangjub.Text);
+                routeSP.MIS_Hajub = Convert.ToInt32(Text_Hajub.Text);
+                routeSP.MIS_Pulbari = Convert.ToInt32(Text_Pulbari.Text);
+                routeSP.MIS_JJokYn = Chk_JjokYn.Checked;
+                routeSP.MIS_Bigo = Text_Bigo.Text;
+
+                Upt_MI.MI_Jang = route.MI_Jang;
+                Upt_MI.MI_Pok = route.MI_Pok;
+                Upt_MI.MI_Go = route.MI_Go;
+                Upt_MIS.MIS_Type = routeSP.MIS_Type;
+                Upt_MIS.MIS_Sangjub = routeSP.MIS_Sangjub;
+                Upt_MIS.MIS_Hajub = routeSP.MIS_Hajub;
+                Upt_MIS.MIS_Pulbari = routeSP.MIS_Pulbari;
+                Upt_MIS.MIS_JJokYn = routeSP.MIS_JJokYn;
+                Upt_MIS.MIS_Bigo = routeSP.MIS_Bigo;
+                Upt_MI.MI_ModDate = DateTime.Now;
+                Upt_MIS.MIS_ModDate = DateTime.Now;
+
+                db.Entry(Upt_MI).Property(x => x.MI_Jang).IsModified = true;
+                db.Entry(Upt_MI).Property(x => x.MI_Pok).IsModified = true;
+                db.Entry(Upt_MI).Property(x => x.MI_Go).IsModified = true;
+                db.Entry(Upt_MI).Property(x => x.MI_ModDate).IsModified = true;
+                db.Entry(Upt_MIS).Property(x => x.MIS_Type).IsModified = true;
+                db.Entry(Upt_MIS).Property(x => x.MIS_Sangjub).IsModified = true;
+                db.Entry(Upt_MIS).Property(x => x.MIS_Hajub).IsModified = true;
+                db.Entry(Upt_MIS).Property(x => x.MIS_Pulbari).IsModified = true;
+                db.Entry(Upt_MIS).Property(x => x.MIS_JJokYn).IsModified = true;
+                db.Entry(Upt_MIS).Property(x => x.MIS_Bigo).IsModified = true;
+                db.Entry(Upt_MIS).Property(x => x.MIS_ModDate).IsModified = true;
+
+                db.MK_Info.Attach(Upt_MI);
+                db.MK_Info_SP.Attach(Upt_MIS);
+                db.Entry(Upt_MI).State = EntityState.Modified;
+                db.Entry(Upt_MIS).State = EntityState.Modified;
+
+                db.SaveChanges();
+
+                //부모창의 메소드 실행
+                ((MainSP)(this.Owner)).RefreshData();
+                MessageBox.Show("목형을 수정했습니다.");
+                this.Close();
+                
+
+                         
+
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("저장에 실패했습니다.");
+            }
+
+
+        }
+
+       
+
+        /// <summary>
+        /// 목형삭제버튼 클릭액션
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Btn_Del_MokInfo_Click(object sender, EventArgs e)
+        {
+            long MISEQ = 0;
+            DialogResult result1 = MessageBox.Show("목형을 삭제하시겠습니까?", "목형삭제여부", MessageBoxButtons.YesNo);
+            if(result1 ==DialogResult.Yes)
+            {
+                MISEQ = Convert.ToInt64(Hidden_MISeq.Text);
+                //목형삭제 메소드실행
+                DeleteMok(MISEQ);
+                //부모창의 메소드 실행
+                ((MainSP)(this.Owner)).RefreshData();
+                MessageBox.Show("목형이 삭제되었습니다.");
+                this.Close();                
+
+            }
+
+        }
+
+        /// <summary>
+        /// 목형 삭제 메소드
+        /// </summary>
+        /// <param name="MISEQ"></param>
+        private void DeleteMok(long MISEQ)
+        {
+            var Del_MI_Info = db.MK_Info.Find(MISEQ);
+            var Del_MI_Info_SP = db.MK_Info_SP.Where(x => x.MI_Seq == MISEQ).FirstOrDefault();
+
+            db.MK_Info.Remove(Del_MI_Info);
+            db.MK_Info_SP.Remove(Del_MI_Info_SP);
+
+            db.SaveChanges();
+        }
+    }
+}

@@ -1,0 +1,352 @@
+﻿using CommonControl;
+using CommonUtil;
+using CommonUtil.Model;
+using EF_CodeFirst.DB_CommProc;
+using EF_CodeFirst.DB_Model;
+using Mokhyung_Management.Model.AddMok;
+using Mokhyung_Management.Model.Route_Model.Box;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Linq;
+using System.Text.RegularExpressions;
+using System.Windows.Forms;
+
+namespace Mokhyung_Management.Box
+{
+    public partial class AddBox : BaseCommonController
+    {
+
+
+        public AddBox()
+        {
+            
+
+            InitializeComponent();
+
+          
+            //박스타입 리스트만듦
+            List<Model_KeyValue> BoxList = new List<Model_KeyValue>();
+            BoxList.AddRange(ConvertUtil.Get_BoxType_List());
+
+            //박스타입 리스트에 키 밸류 값 부여
+            Combo_BoxTypeList.ValueMember = Comm_Param.KeyValueString.K.ToString();
+            Combo_BoxTypeList.DisplayMember = Comm_Param.KeyValueString.V.ToString();
+
+
+            //박스타입 리스트 넣어줌
+            foreach (var c in BoxList)
+            {
+                Combo_BoxTypeList.Items.Add(new { Key = c.Key, Value = c.Value });
+            }
+
+            //박스타입 최초 노출을 '선택'으로
+            Combo_BoxTypeList.SelectedIndex = 0;
+
+            Text_MokName.Focus();
+        }
+
+       
+
+        
+
+        /// <summary>
+        /// 저장버튼
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>        
+        private void Btn_Save_MokInfo_Click(object sender, EventArgs e)
+        {
+            try
+            {
+                string Mk_typeString = string.Empty;
+                string Box_TypeString = string.Empty;
+                //오브젝트를 json타입으로 변경                
+                Box_TypeString = JsonConvert.SerializeObject(Combo_BoxTypeList.SelectedItem);
+                //json 타입으로 변경된걸 모델로변경
+                Route_MokInfo route = new Route_MokInfo();
+                Route_MokInfo_Box routeBox = new Route_MokInfo_Box();
+
+                if(Check_Validate())
+                {
+                            //목형 기본정보 인서트
+                            route.MI_Name = Text_MokName.Text;
+                            route.MI_Type = Comm_Enum.Mok_Type.B.ToString();
+                            route.MI_Number = Convert.ToInt32(Text_MokNumber.Text);
+                            route.MI_Jang = Convert.ToInt32(Text_MokJang.Text);
+                            route.MI_Pok = Convert.ToInt32(Text_MokPok.Text);
+                            route.MI_Go = Convert.ToInt32(Text_MokGo.Text);
+
+
+                            routeBox.MIB_Type = JsonConvert.DeserializeObject<Model_KeyValue>(Box_TypeString).Key;
+                            routeBox.MIB_Pyunglyang = Convert.ToInt32(Text_Pyunglyang.Text);
+                            routeBox.MIB_PanNumber= Convert.ToInt32(Text_PanNumber.Text);
+                            routeBox.MIB_Bigo = Text_Bigo.Text;
+
+                            MK_Info MI = new MK_Info()
+                            {
+                                MI_Name = route.MI_Name,
+                                MI_Type = route.MI_Type,
+                                MI_Number = route.MI_Number,
+                                MI_Jang = route.MI_Jang,
+                                MI_Pok = route.MI_Pok,
+                                MI_Go = route.MI_Go,
+                                MI_RegDate = DateTime.Now,
+                                MI_ModDate = DateTime.Now
+                            };
+
+                            db.MK_Info.Add(MI);
+
+                            MK_Info_Box MIB = new MK_Info_Box()
+                            {
+                                MI_Seq = MI.MI_Seq,
+                                MIB_Type = routeBox.MIB_Type,
+                                MIB_Pyunglyang = routeBox.MIB_Pyunglyang,
+                                MIB_PanNumber = routeBox.MIB_PanNumber,
+                                MIB_Bigo = routeBox.MIB_Bigo,
+                                MIB_RegDate = DateTime.Now,
+                                MIB_ModDate = DateTime.Now
+                            };
+
+                            db.MK_Info_Box.Add(MIB);
+
+                            db.SaveChanges();
+
+                            //부모창 초기화 메소드실행
+                            ((MainBox)(this.Owner)).RefreshData();
+                            MessageBox.Show("목형을 추가했습니다.");
+
+                            //여러개 추가하기 체크된경우
+                            if (Chk_ManyAdd.Checked == false)
+                            {
+                                this.Close();
+                            }
+                            else
+                            {
+                                Text_MokName.Clear();
+                                Text_MokNumber.Clear();
+                                Text_MokJang.Clear();
+                                Text_MokPok.Clear();
+                                Text_Pyunglyang.Clear();
+                                Text_PanNumber.Clear();
+                                Text_Bigo.Clear();
+                                Text_MokGo.Clear();
+                                Combo_BoxTypeList.SelectedIndex = 0;
+                           }
+                }
+                else
+                {
+                    return;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show("저장에 실패했습니다.");
+            }
+
+        }
+
+        /// <summary>
+        /// 목형입력 유효성검사
+        /// </summary>
+        /// <returns></returns>
+        public bool Check_Validate()
+        {
+            CommProc commProc = new CommProc(db);
+            bool Result = true;
+
+            //목형이름이 빈값이아니면서 중복일경우
+            if (commProc.Check_MokNameDuplication(Text_MokName.Text.ToString()))
+            {
+                errorProviderApp.SetError(Text_MokName, "중복된 목형이름입니다");
+                Text_MokName.Text = "";
+                Text_MokName.Focus();
+
+                Result = false;
+            }
+            //목형이름이 빈값일경우
+            else if (string.IsNullOrWhiteSpace(Text_MokName.Text.ToString()))
+            {
+                errorProviderApp.SetError(Text_MokName, "목형이름을 입력해주세요");
+                Text_MokName.Focus();
+
+                Result = false;
+            }
+            //위의 두개가 아닌경우
+            else
+            {
+                //이전에러 표시 삭제
+                errorProviderApp.Clear();
+
+                //목형번호가 빈값이아니면서 번호가아닐경우
+                if (ConvertUtil.Check_Number_Validate(Text_MokNumber.Text.ToString()))
+                {
+                    errorProviderApp.SetError(Text_MokNumber, "숫자만 입력가능합니다");
+                    Text_MokNumber.Text = "";
+                    Text_MokNumber.Focus();
+
+                    Result = false;
+                }
+                //목형번호가 빈값이아니면서 중복일경우
+                else if (commProc.Check_MokNumberDuplication(Text_MokNumber.Text))
+                {
+                    errorProviderApp.SetError(Text_MokNumber, "중복된 목형번호입니다");
+                    Text_MokNumber.Text = "";
+                    Text_MokNumber.Focus();
+
+                    Result = false;
+                }                
+                //목형번호가 빈값일 경우
+                else if (string.IsNullOrWhiteSpace(Text_MokNumber.Text.ToString()))
+                {
+                    errorProviderApp.SetError(Text_MokNumber, "목형번호를 입력해주세요");
+                    Text_MokNumber.Focus();
+
+                    Result = false;
+                }
+                else
+                {
+                    //이전에러 표시 삭제
+                    errorProviderApp.Clear();
+
+                    //장이 숫자가아닐경우
+                    if (ConvertUtil.Check_Number_Validate(Text_MokJang.Text.ToString()))
+                    {
+                        errorProviderApp.SetError(Text_MokJang, "숫자만 입력가능합니다");
+                        Text_MokJang.Text = "";
+                        Text_MokJang.Focus();
+
+                        Result = false;
+                    }
+                    //장이 빈값일 경우
+                    else if (string.IsNullOrWhiteSpace(Text_MokJang.Text.ToString()))
+                    {
+                        errorProviderApp.SetError(Text_MokJang, "장을 입력해주세요");
+                        Text_MokJang.Focus();
+
+                        Result = false;
+                    }
+                    else
+                    {
+                        //이전에러 표시 삭제
+                        errorProviderApp.Clear();
+
+                        //폭이 숫자가아닐경우
+                        if (ConvertUtil.Check_Number_Validate(Text_MokPok.Text.ToString()))
+                        {
+                            errorProviderApp.SetError(Text_MokPok, "숫자만 입력가능합니다");
+                            Text_MokPok.Text = "";
+                            Text_MokPok.Focus();
+
+                            Result = false;
+                        }
+                        //폭이 빈값일 경우
+                        else if (string.IsNullOrWhiteSpace(Text_MokPok.Text.ToString()))
+                        {
+                            errorProviderApp.SetError(Text_MokPok, "폭을 입력해주세요");
+                            Text_MokPok.Focus();
+
+                            Result = false;
+                        }
+                        else
+                        {
+                            //이전에러 표시 삭제
+                            errorProviderApp.Clear();
+
+                            //고가 숫자가 아닐경우
+                            if (ConvertUtil.Check_Number_Validate(Text_MokGo.Text.ToString()))
+                            {
+                                errorProviderApp.SetError(Text_MokGo, "숫자만 입력가능합니다");
+                                Text_MokGo.Text = "";
+                                Text_MokGo.Focus();
+
+                                Result = false;
+                            }
+                            //고가 빈값일 경우
+                            else if (string.IsNullOrWhiteSpace(Text_MokGo.Text.ToString()))
+                            {
+                                errorProviderApp.SetError(Text_MokGo, "고를 입력해주세요");
+                                Text_MokGo.Focus();
+
+                                Result = false;
+                            }
+                            else
+                            {
+                                //이전에러 표시 삭제
+                                errorProviderApp.Clear();
+                                //세부타입이 선택이 안된경우
+                                if (Combo_BoxTypeList.SelectedIndex == 0)
+                                {
+                                    errorProviderApp.SetError(Combo_BoxTypeList, "세부타입을 선택해주세요");
+                                    Combo_BoxTypeList.Focus();
+
+                                    Result = false;
+                                }
+                                else
+                                {
+                                    //이전에러 표시 삭제
+                                    errorProviderApp.Clear();
+                                    //평량이 숫자가 아닌경우
+                                    if (ConvertUtil.Check_Number_Validate(Text_Pyunglyang.Text.ToString()))
+                                    {
+                                        errorProviderApp.SetError(Text_Pyunglyang, "숫자만 입력가능합니다");
+                                        Text_Pyunglyang.Text = "";
+                                        Text_Pyunglyang.Focus();
+
+                                        Result = false;
+                                    }
+                                    //평량이 빈값일 경우
+                                    else if (string.IsNullOrWhiteSpace(Text_Pyunglyang.Text.ToString()))
+                                    {
+                                        errorProviderApp.SetError(Text_Pyunglyang, "평량을 입력해주세요");
+                                        Text_Pyunglyang.Focus();
+
+                                        Result = false;
+                                    }
+                                    else
+                                    {
+                                       
+                                            //이전에러 표시 삭제
+                                            errorProviderApp.Clear();
+                                            //판수가 숫자가 아닌경우
+                                            if (ConvertUtil.Check_Number_Validate(Text_PanNumber.Text.ToString()))
+                                            {
+                                                errorProviderApp.SetError(Text_PanNumber, "숫자만 입력가능합니다");
+                                                Text_PanNumber.Text = "";
+                                                Text_PanNumber.Focus();
+
+                                                Result = false;
+                                            }
+                                            //판수가 빈값일경우
+                                            else if (string.IsNullOrWhiteSpace(Text_PanNumber.Text.ToString()))
+                                            {
+                                                errorProviderApp.SetError(Text_PanNumber, "판수를 입력해주세요");
+                                                Text_PanNumber.Focus();
+
+                                                Result = false;
+                                            }
+                                            else
+                                            {
+                                                errorProviderApp.Clear();
+                                                Result = true;
+                                            }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+
+            return Result;
+
+        }
+
+
+
+
+    }
+}

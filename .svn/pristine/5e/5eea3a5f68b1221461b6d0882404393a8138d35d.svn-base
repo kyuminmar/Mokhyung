@@ -1,0 +1,39 @@
+﻿using CommonControl;
+using Mokhyung_Management.AddMok;
+using Mokhyung_Management.SP;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+
+namespace Mokhyung_Management
+{
+    public partial class Main : BaseCommonController
+    {
+        public Main()
+        {
+            InitializeComponent();
+            this.Btn_MoveSP.Click += Move_SP;
+
+        }
+
+        
+        /// <summary>
+        /// 쇼핑백 관리로이동
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Move_SP(object sender, EventArgs e)
+        {
+            MainSP SP = new MainSP();
+            SP.Show();
+            
+        }
+    }
+}

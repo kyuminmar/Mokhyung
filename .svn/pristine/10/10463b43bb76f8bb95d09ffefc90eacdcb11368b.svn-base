@@ -1,0 +1,103 @@
+﻿using EF_CodeFirst.DB_Context;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace EF_CodeFirst.DB_CommProc
+{
+
+    public class CommProc
+    {
+
+        MokManagementContext _db;
+
+        public CommProc(MokManagementContext db)
+        {
+            _db = db;
+        }
+
+        /// <summary>
+        /// 목형 이름 중복체크
+        /// </summary>
+        /// <param name="MISEQ"></param>
+        /// <returns></returns>
+        public bool Check_MokNameDuplication(string MokName)
+        {
+            bool Result;
+            int DupCount = 0;
+
+            if (!string.IsNullOrEmpty(MokName))
+            {
+                DupCount = _db.MK_Info.Where(x => x.MI_Name.Equals(MokName)).Count();
+                if (DupCount > 0)
+                {
+                    Result = true;
+                }
+                else
+                {
+                    Result = false;
+                }
+            }
+            else
+            {
+                Result = false;
+            }
+
+            return Result;
+        }
+
+        /// <summary>
+        /// 목형번호 중복체크
+        /// </summary>
+        /// <param name="MISEQ"></param>
+        /// <returns></returns>
+        public bool Check_MokNumberDuplication(string MokNum)
+        {
+            bool Result;
+            int DupCount = 0;
+            int MokNumber = 0;
+
+            if (!string.IsNullOrEmpty(MokNum))
+            {
+                MokNumber = Convert.ToInt32(MokNum);
+                DupCount = _db.MK_Info.Where(x => x.MI_Number.Equals(MokNumber)).Count();
+                if (DupCount > 0)
+                {
+                    Result = true;
+                }
+                else
+                {
+                    Result = false;
+                }
+            }
+            else
+            {
+                Result = false;
+            }
+            return Result;
+        }
+
+        /// <summary>
+        /// 쇼핑백 파일 풀경로 얻어오기
+        /// </summary>
+        /// <param name="MISEQ"></param>
+        /// <returns></returns>
+        public string Get_SPFileName(long MISEQ)
+        {
+            string FullFilePath = string.Empty;
+
+            FullFilePath = _db.MK_Info_SP.Where(x => x.MI_Seq == MISEQ).FirstOrDefault().MIS_FileName;
+                            
+            return FullFilePath;
+        }
+
+
+
+
+
+
+    }
+}

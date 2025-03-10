@@ -1,0 +1,179 @@
+﻿using CommonControl;
+using CommonUtil;
+using CommonUtil.Model;
+using EF_CodeFirst.DB_Model;
+using Mokhyung_Management.Model.AddMok;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Linq;
+using System.Windows.Forms;
+
+namespace Mokhyung_Management.SP
+{
+    public partial class AddSP : BaseCommonController
+    {
+
+        public AddSP()
+        {
+            InitializeComponent();
+
+          
+            //쇼핑백 타입 리스트만듦
+            List<Model_KeyValue> SPList = new List<Model_KeyValue>();
+            SPList.AddRange(ConvertUtil.Get_SPType_List());
+
+            //쇼핑백타입 리스트에 키 밸류 값 부여
+            Combo_SPTypeList.ValueMember = Comm_Param.KeyValueString.K.ToString();
+            Combo_SPTypeList.DisplayMember = Comm_Param.KeyValueString.V.ToString();
+
+            
+            //쇼핑백 타입 리스트 넣어줌
+            foreach (var c in SPList)
+            {
+                Combo_SPTypeList.Items.Add(new { Key = c.Key, Value = c.Value });
+            }
+
+            //쇼핑백타입 최초 노출을 '선택'으로
+            Combo_SPTypeList.SelectedIndex = 0;
+
+            Text_MokName.Focus();
+        }
+
+       
+
+        
+
+        /// <summary>
+        /// 저장버튼
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>        
+        private void Btn_Save_MokInfo_Click(object sender, EventArgs e)
+        {
+
+            try
+            {              
+
+                //목형정보를 불러옴
+                var MKList = db.MK_Info.ToList();                
+
+                string Mk_typeString = string.Empty;
+                string SP_TypeString = string.Empty;
+                //오브젝트를 json타입으로 변경                
+                SP_TypeString = JsonConvert.SerializeObject(Combo_SPTypeList.SelectedItem);
+                //json 타입으로 변경된걸 모델로변경
+                Route_MokInfo route = new Route_MokInfo();
+
+                //중복된 목형이름인지 확인
+                if (MKList.Where(x => x.MI_Name == Text_MokName.Text).Count() > 0)
+                {
+                    DialogResult result = MessageBox.Show("중복된 목형이름입니다.");
+                    Text_MokName.Clear();
+                }
+                else
+                {
+
+                    //목형 기본정보 인서트
+                    route.MI_Name = Text_MokName.Text;
+                    route.MI_Type = Comm_Enum.Mok_Type.S.ToString();
+                    route.MI_Number = Convert.ToInt32(Text_MokNumber.Text);
+                    route.MI_Jang = Convert.ToInt32(Text_MokJang.Text);
+                    route.MI_Pok = Convert.ToInt32(Text_MokPok.Text);
+                    route.MI_Go = Convert.ToInt32(Text_MokGo.Text);
+                    route.MIS_Type = JsonConvert.DeserializeObject<Model_KeyValue>(SP_TypeString).Key;
+                    route.MIS_Sangjub = Convert.ToInt32(Text_Sangjub.Text);
+                    route.MIS_Hajub = Convert.ToInt32(Text_Hajub.Text);
+                    route.MIS_Pulbari = Convert.ToInt32(Text_Pulbari.Text);
+                    route.MIS_JJokYn = Chk_JjokYn.Checked;
+                    route.MIS_Bigo = Text_Bigo.Text;
+                    
+
+                    MK_Info MI = new MK_Info()
+                    {
+                        MI_Name = route.MI_Name,
+                        MI_Type = route.MI_Type,
+                        MI_Number = route.MI_Number,
+                        MI_Jang= route.MI_Jang,
+                        MI_Pok= route.MI_Pok,
+                        MI_Go = route.MI_Go,
+                        MI_RegDate = DateTime.Now,
+                        MI_ModDate = DateTime.Now
+                    };
+
+                    db.MK_Info.Add(MI);
+
+                    MK_Info_SP MIS = new MK_Info_SP()
+                    {
+                        MI_Seq = MI.MI_Seq,
+                        MIS_Type = route.MIS_Type,
+                        MIS_Sangjub = route.MIS_Sangjub,
+                        MIS_Hajub = route.MIS_Hajub,
+                        MIS_Pulbari = route.MIS_Pulbari,
+                        MIS_JJokYn = route.MIS_JJokYn,
+                        MIS_Bigo = route.MIS_Bigo,
+                        MIS_RegDate = DateTime.Now,
+                        MIS_ModDate = DateTime.Now
+
+                    };
+
+                    db.MK_Info_SP.Add(MIS);
+
+                    db.SaveChanges();
+                    MessageBox.Show("목형을 추가했습니다.");
+                    //여러개 추가하기 체크된경우
+                    if (Chk_ManyAdd.Checked == false)
+                    {
+                        this.Close();
+                    }
+                    else
+                    {
+                        Text_MokName.Clear();
+                        Text_MokNumber.Clear();
+                        Text_MokJang.Clear();
+                        Text_MokPok.Clear();
+                        Text_Sangjub.Clear();
+                        Text_Hajub.Clear();
+                        Text_Pulbari.Clear();
+                        Text_Bigo.Clear();
+                        Text_MokGo.Clear();
+                        Chk_JjokYn.Checked = false;
+                        Combo_SPTypeList.SelectedIndex = 0;
+                    }
+
+                }
+            }
+            catch(Exception ex)
+            {
+                MessageBox.Show("저장에 실패했습니다.");
+            }
+            
+
+        }
+
+        //목형이름 유효성검사
+        private void textBox_Validating(object sender, CancelEventArgs e)
+        {
+            //목형이름에 포커스가 갔을때만
+            if(Text_MokName.Focus())
+            {
+
+                if (string.IsNullOrWhiteSpace(Text_MokName.Text))
+                {
+                    e.Cancel = true;
+                    Text_MokName.Focus();
+                    errorProviderApp.SetError(Text_MokName, "목형이름을 입력해주세요");
+                }
+                else
+                {
+                    e.Cancel = false;
+                    errorProviderApp.SetError(Text_MokName, "");
+                }
+            }
+        }
+
+       
+    }
+}

@@ -1,0 +1,20 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Mokhyung_Management.Model.AddMok
+{
+    public class Route_MokInfo_SP
+    {
+        public long MI_Seq { get; set; }
+        public string MIS_Type { get; set; }
+        public bool MIS_JJokYn { get; set; }
+        public int MIS_Sangjub { get; set; }
+        public int MIS_Hajub { get; set; }
+        public int MIS_Pulbari { get; set; }
+        public string MIS_Bigo { get; set; }
+
+    }
+}

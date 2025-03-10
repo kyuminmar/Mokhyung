@@ -1,0 +1,437 @@
+﻿using CommonControl;
+using CommonUtil;
+using CommonUtil.Model;
+using Mokhyung_Management.Model.ViewModel.SP;
+using Newtonsoft.Json;
+using System;
+using System.Collections.Generic;
+using System.ComponentModel;
+using System.Data;
+using System.Drawing;
+using System.Linq;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+
+namespace Mokhyung_Management.Box
+{
+    public partial class MainBox : BaseCommonController
+    {
+        public MainBox()
+        {
+            
+            InitializeComponent();         
+
+        }
+
+        /// <summary>
+        /// 박스 데이터 바인딩
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MainSP_Load(object sender, EventArgs e)
+        {
+
+            //박스 검색타입 리스트만듦
+            List<Model_KeyValue> Search_TypeList = new List<Model_KeyValue>();
+            Search_TypeList.AddRange(ConvertUtil.Get_SPSearchType_List());
+
+            //박스검색타입 리스트에 키 밸류 값 부여
+            Combo_SearchType.ValueMember = Comm_Param.KeyValueString.K.ToString();
+            Combo_SearchType.DisplayMember = Comm_Param.KeyValueString.V.ToString();
+
+            //박스검색타입 리스트 넣어줌
+            foreach (var c in Search_TypeList)
+            {
+                Combo_SearchType.Items.Add(new { Key = c.Key, Value = c.Value });
+            }
+
+            //박스검색타입 최초 노출을 '선택'으로
+            Combo_SearchType.SelectedIndex = 0;
+
+            RefreshData();
+
+
+        }
+
+        /// <summary>
+        /// 셀 더블클릭시 이벤트
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Dgv_SPList_DoubleClick(object sender, EventArgs e)
+        {
+            int i = Dgv_BoxList.SelectedCells[0].RowIndex;
+            int Mi_Seq = 0;
+
+            Mi_Seq = Convert.ToInt32(Dgv_BoxList.Rows[i].Cells["MI_Seq"].Value.ToString());
+
+            //자식창선언
+            //ModSP SP = new ModSP(Mi_Seq);            
+            //자식창을 열면서 부모창의 값을 넘김
+            //SP.ShowDialog(this);
+        }
+        /// <summary>
+        /// 새로고침 버튼액션
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Dgv_SPList_Refresh(object sender, EventArgs e)
+        {
+            RefreshData();
+        }
+
+        /// <summary>
+        /// 데이터를 새로고침
+        /// </summary>
+        public void RefreshData()
+        {
+            
+            Dgv_BoxList.Rows.Clear();
+
+            var List = from MI in db.MK_Info
+                       orderby MI.MI_RegDate descending
+                       select new View_SPList
+                       {
+                           MI_Seq = MI.MI_Seq,
+                           MI_Go = MI.MI_Go,
+                           MI_Name = MI.MI_Name,
+                           MI_Jang = MI.MI_Jang,
+                           MI_Pok = MI.MI_Pok,
+                           MI_Type = MI.MI_Type,
+                           MI_Number = MI.MI_Number,
+                           MI_RegDate = MI.MI_RegDate,
+                           MI_ModDate = MI.MI_ModDate,
+                           Detail = (from MIS in db.MK_Info_SP
+                                     where MIS.MI_Seq == MI.MI_Seq
+                                     select new View_SPDetail
+                                     {
+                                         MIS_Seq = MIS.MIS_Seq,
+                                         MIS_Type = MIS.MIS_Type,
+                                         MIS_Sangjub = MIS.MIS_Sangjub,
+                                         MIS_Hajub = MIS.MIS_Hajub,
+                                         MIS_JJokYN = MIS.MIS_JJokYn,
+                                         MIS_Pulbari = MIS.MIS_Pulbari,
+                                         MIS_RegDate = MIS.MIS_RegDate,
+                                         MIS_ModDate = MIS.MIS_ModDate,
+                                         MIS_Bigo = MIS.MIS_Bigo
+                                     }).FirstOrDefault()
+                       };
+
+            var SPList = List.ToList();
+            int RowNum = SPList.Count();
+
+            SPList = (from F in SPList
+                      orderby F.MI_RegDate descending
+                      select new View_SPList
+                      {
+                          RowNum = RowNum--,
+                          MI_Seq = F.MI_Seq,
+                          MI_Name = F.MI_Name,
+                          MI_Go = F.MI_Go,
+                          MI_Jang = F.MI_Jang,
+                          MI_Pok = F.MI_Pok,
+                          MI_Type = F.MI_Type,
+                          MI_Number = F.MI_Number,
+                          MI_RegDate = F.MI_RegDate,
+                          MI_ModDate = F.MI_ModDate,
+                          Detail = (from MIS in db.MK_Info_SP
+                                    where MIS.MI_Seq == F.MI_Seq
+                                    select new View_SPDetail
+                                    {
+                                        MIS_Seq = MIS.MIS_Seq,
+                                        MIS_Type = MIS.MIS_Type,
+                                        MIS_Sangjub = MIS.MIS_Sangjub,
+                                        MIS_Hajub = MIS.MIS_Hajub,
+                                        MIS_JJokYN = MIS.MIS_JJokYn,
+                                        MIS_Pulbari = MIS.MIS_Pulbari,
+                                        MIS_RegDate = MIS.MIS_RegDate,
+                                        MIS_ModDate = MIS.MIS_ModDate,
+                                        MIS_Bigo = MIS.MIS_Bigo
+                                    }).FirstOrDefault()
+                      }).ToList();
+
+
+            if(SPList.Count>0)
+            {
+                //데이터를 넣어줌(컬럼에따라 순서가 중요)
+                foreach (var i in SPList)
+                {
+                    Dgv_BoxList.Rows.Add(i.MI_Seq, i.RowNum, i.MI_Name, i.MI_Number, i.Detail.MIS_TypeText, i.MI_Jang, i.MI_Pok, i.MI_Go, i.Detail.MIS_Sangjub,
+                        i.Detail.MIS_Hajub, i.Detail.MIS_Pulbari, i.Detail.MIS_JJokYNText, i.MI_RegDate.ToShortDateString(), i.MI_ModDate.ToShortDateString(), i.Detail.MIS_Bigo);
+                }
+            }
+            
+
+        }
+
+        /// <summary>
+        /// 검색버튼
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Btn_Search_Click(object sender, EventArgs e)
+        {
+            SearchData();
+        }
+        /// <summary>
+        /// 검색기능
+        /// </summary>
+        private void SearchData()
+        {
+            string Search_Type = string.Empty;
+            string Search_Text = string.Empty;
+            string SearchType_String = string.Empty;
+
+            //먼저  기존 목형리스트를 지워줌
+            Dgv_BoxList.Rows.Clear();
+
+            var List = from MI in db.MK_Info
+                       orderby MI.MI_RegDate descending
+                       select new View_SPList
+                       {
+                           MI_Seq = MI.MI_Seq,
+                           MI_Go = MI.MI_Go,
+                           MI_Name = MI.MI_Name,
+                           MI_Jang = MI.MI_Jang,
+                           MI_Pok = MI.MI_Pok,
+                           MI_Type = MI.MI_Type,
+                           MI_Number = MI.MI_Number,
+                           MI_RegDate = MI.MI_RegDate,
+                           MI_ModDate = MI.MI_ModDate,
+                           Detail = (from MIS in db.MK_Info_SP
+                                     where MIS.MI_Seq == MI.MI_Seq
+                                     select new View_SPDetail
+                                     {
+                                         MIS_Seq = MIS.MIS_Seq,
+                                         MIS_Type = MIS.MIS_Type,
+                                         MIS_Sangjub = MIS.MIS_Sangjub,
+                                         MIS_Hajub = MIS.MIS_Hajub,
+                                         MIS_JJokYN = MIS.MIS_JJokYn,
+                                         MIS_Pulbari = MIS.MIS_Pulbari,
+                                         MIS_RegDate = MIS.MIS_RegDate,
+                                         MIS_ModDate = MIS.MIS_ModDate,
+                                         MIS_Bigo = MIS.MIS_Bigo
+                                     }).FirstOrDefault()
+                       };
+
+            var SPList = List.ToList();
+            int RowNum = 0;
+            //검색타입과 검색텍스트가 있을경우
+            if (Combo_SearchType.SelectedIndex != 0 && Text_SearchText.Text != "")
+            {
+                SearchType_String = JsonConvert.SerializeObject(Combo_SearchType.SelectedItem);
+                Search_Type = JsonConvert.DeserializeObject<Model_KeyValue>(SearchType_String).Key;
+                Search_Text = Text_SearchText.Text;
+                //목형이름으로 검색
+                if (Search_Type == Comm_Enum.Search_Type.N.ToString())
+                {
+                    SPList = List.Where(x => x.MI_Name.Contains(Search_Text)).ToList();
+                }
+                //목형번호로 검색
+                else if (Search_Type == Comm_Enum.Search_Type.U.ToString())
+                {
+                    int Search_Num = 0;
+                    Search_Num = Convert.ToInt32(Search_Text);
+                    SPList = List.Where(x => x.MI_Number.Equals(Search_Num)).ToList();
+                }
+
+            }
+            else
+            {
+                //장폭고 검색중 하나라도있으면
+                if (!string.IsNullOrWhiteSpace(Text_SearchJang.Text) || !string.IsNullOrWhiteSpace(Text_SearchPok.Text) || !string.IsNullOrWhiteSpace(Text_SearchGo.Text))
+                {
+                    int Jang = 0;
+                    int Pok = 0;
+                    int Go = 0;
+                    bool Result = true;
+                    //int GapSize = 0;
+
+
+                        //장이 있을떄
+                        if (!string.IsNullOrWhiteSpace(Text_SearchJang.Text))
+                        {
+                            Jang = Convert.ToInt32(Text_SearchJang.Text);
+                            //장,폭이 있을떄
+                            if (!string.IsNullOrWhiteSpace(Text_SearchPok.Text))
+                            {
+                                Pok = Convert.ToInt32(Text_SearchPok.Text);
+                                //장,폭,고가있을때
+                                if (!string.IsNullOrWhiteSpace(Text_SearchGo.Text))
+                                {
+                                    Go = Convert.ToInt32(Text_SearchGo.Text);
+                                    SPList = SPList.Where(x => x.MI_Jang.Equals(Jang) && x.MI_Pok.Equals(Pok) && x.MI_Go.Equals(Go)).ToList();
+                                }
+                                //장,폭있을때
+                                else
+                                {
+                                    SPList = SPList.Where(x => x.MI_Jang.Equals(Jang) && x.MI_Pok.Equals(Pok)).ToList();
+                                }
+                            }
+                            //장,고가 있을떄
+                            else if (!string.IsNullOrWhiteSpace(Text_SearchGo.Text))
+                            {
+                                Go = Convert.ToInt32(Text_SearchGo.Text);
+                                SPList = SPList.Where(x => x.MI_Jang.Equals(Jang) && x.MI_Go.Equals(Go)).ToList();
+                            }
+                            //장만 있을때
+                            else
+                            {
+                                SPList = SPList.Where(x => x.MI_Jang.Equals(Jang)).ToList();
+                            }
+                        }
+                        //폭이 있을때
+                        else if (!string.IsNullOrWhiteSpace(Text_SearchPok.Text))
+                        {
+                            Pok = Convert.ToInt32(Text_SearchPok.Text);
+                            //폭,고가 있을때
+                            if (!string.IsNullOrWhiteSpace(Text_SearchGo.Text))
+                            {
+                                Go = Convert.ToInt32(Text_SearchGo.Text);
+                                SPList = SPList.Where(x => x.MI_Pok.Equals(Pok) && x.MI_Go.Equals(Go)).ToList();
+                            }
+                            //폭만 있을때
+                            else
+                            {
+                                SPList = SPList.Where(x => x.MI_Pok.Equals(Pok)).ToList();
+                            }
+                        }
+                        //고만 있을때
+                        else
+                        {
+                            Go = Convert.ToInt32(Text_SearchGo.Text);
+                            SPList = SPList.Where(x => x.MI_Go.Equals(Go)).ToList();
+                        }
+                        //오차범위사용시(개발예정)
+                        //if(Chk_UseGap.Checked)
+                        //{
+                        //    GapSize = Convert.ToInt32(Text_GapSize);
+                        //    if (Rb_GapGo.Checked)
+                        //    {
+
+                        //    }
+                        //}
+                    }
+                }
+
+            RowNum = SPList.Count();
+            SPList = (from F in SPList
+                      orderby F.MI_RegDate descending
+                      select new View_SPList
+                      {
+                          RowNum = RowNum--,
+                          MI_Seq = F.MI_Seq,
+                          MI_Name = F.MI_Name,
+                          MI_Go = F.MI_Go,
+                          MI_Jang = F.MI_Jang,
+                          MI_Pok = F.MI_Pok,
+                          MI_Type = F.MI_Type,
+                          MI_Number = F.MI_Number,
+                          MI_RegDate = F.MI_RegDate,
+                          MI_ModDate = F.MI_ModDate,
+                          Detail = (from MIS in db.MK_Info_SP
+                                    where MIS.MI_Seq == F.MI_Seq
+                                    select new View_SPDetail
+                                    {
+                                        MIS_Seq = MIS.MIS_Seq,
+                                        MIS_Type = MIS.MIS_Type,
+                                        MIS_Sangjub = MIS.MIS_Sangjub,
+                                        MIS_Hajub = MIS.MIS_Hajub,
+                                         MIS_JJokYN = MIS.MIS_JJokYn,
+                                        MIS_Pulbari = MIS.MIS_Pulbari,
+                                        MIS_RegDate = MIS.MIS_RegDate,
+                                        MIS_ModDate = MIS.MIS_ModDate,
+                                        MIS_Bigo = MIS.MIS_Bigo
+                                    }).FirstOrDefault()
+                      }).ToList();
+
+            if (SPList.Count > 0)
+            {
+                //데이터를 넣어줌(컬럼에따라 순서가 중요)
+                foreach (var i in SPList)
+                {
+                    Dgv_BoxList.Rows.Add(i.MI_Seq, i.RowNum, i.MI_Name, i.MI_Number, i.Detail.MIS_TypeText, i.MI_Jang, i.MI_Pok, i.MI_Go, i.Detail.MIS_Sangjub,
+                        i.Detail.MIS_Hajub, i.Detail.MIS_Pulbari, i.Detail.MIS_JJokYNText,  i.MI_RegDate.ToShortDateString(), i.MI_ModDate.ToShortDateString(), i.Detail.MIS_Bigo);
+                }
+            }
+
+        }
+
+        //오차범위 체크시(개발예정)
+        private void Ckb_UseGap_CheckedChanged(object sender, EventArgs e)
+        {
+            if(Chk_UseGap.Checked)
+            {
+                Lb_GapUse.Visible = true;
+            }
+            else
+            {
+                Lb_GapUse.Visible = false;
+            }
+        }
+
+        /// <summary>
+        /// 목형추가버튼
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Btn_AddMok_Click(object sender, EventArgs e)
+        {
+            AddBox AB = new AddBox();
+            AB.ShowDialog(this);
+        }
+
+        /// <summary>
+        /// 키입력시
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void MainSP_KeyDown(object sender, KeyEventArgs e)
+        {
+            switch(e.KeyCode)
+            {
+                //F5키 눌렀을시
+                case Keys.F5:
+                    RefreshData();
+                    break;
+                case Keys.Enter:
+                    SearchData();
+                    break;
+                default:
+                    break;
+
+            }
+        }
+
+        /// <summary>
+        /// 장폭고 숫자 유효성검사
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void Search_Validate_Leave(object sender, EventArgs e)
+        {
+
+            if(ConvertUtil.Check_Number_Validate(Text_SearchJang.Text))
+            {
+                MessageBox.Show("숫자만 입력가능합니다");
+                Text_SearchJang.Text = "";
+                Text_SearchJang.Focus();
+            }
+            if (ConvertUtil.Check_Number_Validate(Text_SearchPok.Text))
+            {
+                MessageBox.Show("숫자만 입력가능합니다");
+                Text_SearchPok.Text = "";
+                Text_SearchPok.Focus();
+            }
+            if (ConvertUtil.Check_Number_Validate(Text_SearchGo.Text))
+            {
+                MessageBox.Show("숫자만 입력가능합니다");
+                Text_SearchGo.Text = "";
+                Text_SearchGo.Focus();
+            }
+           
+        }
+    }
+}
