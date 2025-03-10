@@ -93,13 +93,15 @@
     <Reference Include="K4os.Hash.xxHash, Version=1.0.8.0, Culture=neutral, PublicKeyToken=32cd54395057cec3, processorArchitecture=MSIL">
       <HintPath>..\packages\K4os.Hash.xxHash.1.0.8\lib\net462\K4os.Hash.xxHash.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=7.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.7.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
-      <Private>True</Private>
+    <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Bcl.HashCode, Version=1.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Bcl.HashCode.1.1.1\lib\net461\Microsoft.Bcl.HashCode.dll</HintPath>
       <Private>True</Private>
+    </Reference>
+    <Reference Include="Microsoft.EntityFrameworkCore, Version=3.1.1.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.EntityFrameworkCore.3.1.1\lib\netstandard2.0\Microsoft.EntityFrameworkCore.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.Caching.Abstractions, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Caching.Abstractions.7.0.0\lib\net462\Microsoft.Extensions.Caching.Abstractions.dll</HintPath>
@@ -119,14 +121,14 @@
     <Reference Include="Microsoft.Extensions.DependencyInjection, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.7.0.0\lib\net462\Microsoft.Extensions.DependencyInjection.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.7.0.0\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.DependencyInjection.Abstractions, Version=8.0.0.2, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.DependencyInjection.Abstractions.8.0.2\lib\net462\Microsoft.Extensions.DependencyInjection.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.Logging, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Logging.7.0.0\lib\net462\Microsoft.Extensions.Logging.dll</HintPath>
     </Reference>
-    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=7.0.0.0, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
-      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.7.0.0\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
+    <Reference Include="Microsoft.Extensions.Logging.Abstractions, Version=8.0.0.2, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
+      <HintPath>..\packages\Microsoft.Extensions.Logging.Abstractions.8.0.2\lib\net462\Microsoft.Extensions.Logging.Abstractions.dll</HintPath>
     </Reference>
     <Reference Include="Microsoft.Extensions.Options, Version=7.0.0.1, Culture=neutral, PublicKeyToken=adb9793829ddae60, processorArchitecture=MSIL">
       <HintPath>..\packages\Microsoft.Extensions.Options.7.0.1\lib\net462\Microsoft.Extensions.Options.dll</HintPath>
@@ -145,6 +147,9 @@
     </Reference>
     <Reference Include="MySql.Web, Version=9.2.0.0, Culture=neutral, PublicKeyToken=c5687fc88969c44d, processorArchitecture=MSIL">
       <HintPath>..\packages\MySql.Web.9.2.0\lib\net48\MySql.Web.dll</HintPath>
+    </Reference>
+    <Reference Include="MySqlConnector, Version=2.0.0.0, Culture=neutral, PublicKeyToken=d33d3e53aa5f8c92, processorArchitecture=MSIL">
+      <HintPath>..\packages\MySqlConnector.2.4.0\lib\net48\MySqlConnector.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
       <HintPath>..\packages\Newtonsoft.Json.13.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
@@ -232,31 +237,45 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Box\AddBox.cs" />
+    <Compile Include="Box\AddBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Box\AddBox.Designer.cs">
       <DependentUpon>AddBox.cs</DependentUpon>
     </Compile>
-    <Compile Include="Box\MainBox.cs" />
+    <Compile Include="Box\MainBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Box\MainBox.Designer.cs">
       <DependentUpon>MainBox.cs</DependentUpon>
     </Compile>
-    <Compile Include="Box\ModBox.cs" />
+    <Compile Include="Box\ModBox.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Box\ModBox.Designer.cs">
       <DependentUpon>ModBox.cs</DependentUpon>
     </Compile>
-    <Compile Include="InOut\AddInOut.cs" />
+    <Compile Include="InOut\AddInOut.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="InOut\AddInOut.Designer.cs">
       <DependentUpon>AddInOut.cs</DependentUpon>
     </Compile>
-    <Compile Include="InOut\AddSubContract.cs" />
+    <Compile Include="InOut\AddSubContract.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="InOut\AddSubContract.Designer.cs">
       <DependentUpon>AddSubContract.cs</DependentUpon>
     </Compile>
-    <Compile Include="InOut\MainInOut.cs" />
+    <Compile Include="InOut\MainInOut.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="InOut\MainInOut.Designer.cs">
       <DependentUpon>MainInOut.cs</DependentUpon>
     </Compile>
-    <Compile Include="Main\Main.cs" />
+    <Compile Include="Main\Main.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="Main\Main.Designer.cs">
       <DependentUpon>Main.cs</DependentUpon>
     </Compile>
@@ -272,15 +291,21 @@
     <Compile Include="Model\ViewModel\SP\View_SPList.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SP\ModSP.cs" />
+    <Compile Include="SP\ModSP.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="SP\ModSP.Designer.cs">
       <DependentUpon>ModSP.cs</DependentUpon>
     </Compile>
-    <Compile Include="SP\AddSP.cs" />
+    <Compile Include="SP\AddSP.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="SP\AddSP.Designer.cs">
       <DependentUpon>AddSP.cs</DependentUpon>
     </Compile>
-    <Compile Include="SP\MainSP.cs" />
+    <Compile Include="SP\MainSP.cs">
+      <SubType>Form</SubType>
+    </Compile>
     <Compile Include="SP\MainSP.Designer.cs">
       <DependentUpon>MainSP.cs</DependentUpon>
     </Compile>
