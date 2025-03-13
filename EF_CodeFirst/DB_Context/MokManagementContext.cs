@@ -171,5 +171,6 @@ namespace EF_CodeFirst.DB_Context
                 .WithRequired(e => e.MK_SubContract2);
         }
 
+     
     }
 }
